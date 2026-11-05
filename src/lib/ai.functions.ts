@@ -1,0 +1,95 @@
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { generateChatCompletion, GatewayError } from "@lovable.dev/ai-gateway";
+import { createClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
+
+const MODEL = "google/gemini-3.8-flash" as const;
+
+async function askJson(system: string, user: string): Promise<Record<string, unknown>> {
+  try {
+    const res = await generateChatCompletion({
+      model: MODEL,
+      messages: [
+        { role: "system", content: system + "\nRespond ONLY with a JSON object." },
+        { role: "user", content: user },
+      ],
+      response_format: { type: "json_object" },
+    });
+    const text = res.choices?.[0]?.message?.content;
+    const raw = typeof text === "string" ? text : "";
+    return JSON.parse(raw.replace(/^```json\s*|```$/g, ""));
+  } catch (e) {
+    if (e instanceof GatewayError) {
+      if (e.httpStatus === 429) throw new Error("The assistant is busy — try again in a minute.");
+      if (e.httpStatus === 402) throw new Error("AI credits are exhausted for this workspace.");
+    }
+    throw new Error("The assistant couldn't answer right now.");
+  }
+}
+
+function publicClient() {
+  const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
+  return createClient<Database>(process.env["SUPABASE_URL"]!, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    global: key.startsWith("sb_")
+      ? { fetch: (input, init) => { const h = new Headers(init?.headers); if (h.get("Authorization") === `Bearer ${key}`) h.delete("Authorization"); h.set("apikey", key); return fetch(input, { ...init, headers: h }); } }
+      : undefined,
+  });
+}
+
+/** Customer shopping assistant: only recommends products that exist in the database. */
+export const shoppingAssistant = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ message: z.string().min(1).max(500) }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = publicClient();
+    const { data: products } = await sb
+      .from("products")
+      .select("id,name,brand,unit,price,stock,shop:shops(name,area)")
+      .eq("active", true)
+      .gt("stock", 0)
+      .limit(300);
+    const catalog = (products ?? []).map((p) => ({ id: p.id, n: p.name, b: p.brand, u: p.unit, price: Number(p.price), shop: p.shop?.name }));
+    const out = await askJson(
+      `You are LocalLoop's shopping assistant for local shops in Chennai. Reply in the user's language (English or Tamil).
+Only recommend items from this CATALOG (in-stock only). Never invent products, prices or shops. Respect any budget. If something needed isn't available, say so in "missing".
+CATALOG: ${JSON.stringify(catalog)}
+JSON shape: {"reply": string, "items": [{"id": string, "quantity": number, "why": string}], "missing": string[]}`,
+      data.message,
+    );
+    const valid = new Map(catalog.map((c) => [c.id, c]));
+    const items = (Array.isArray(out.items) ? out.items : [])
+      .filter((i: { id?: string }) => i?.id && valid.has(i.id))
+      .map((i: { id: string; quantity?: number; why?: string }) => ({ id: i.id, quantity: Math.max(1, Math.round(i.quantity ?? 1)), why: String(i.why ?? "") }));
+    return { reply: String(out.reply ?? ""), items, missing: Array.isArray(out.missing) ? out.missing.map(String) : [] };
+  });
+
+/** Shop inventory assistant: interprets a command into a proposed action; the UI confirms before executing. */
+export const inventoryAssistant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ shopId: z.string().uuid(), command: z.string().min(1).max(400) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: products, error } = await context.supabase.from("products").select("id,name,price,stock,sold_count,unit").eq("shop_id", data.shopId);
+    if (error) throw new Error(error.message);
+    return askJson(
+      `You help a shopkeeper manage inventory. Their products: ${JSON.stringify(products)}.
+Interpret the command into ONE action. Use only product ids from the list.
+JSON shape: {"action": "add_stock"|"set_stock"|"set_price"|"query"|"unknown", "product_id": string|null, "value": number|null, "summary": string, "answer": string}
+- add_stock: value = units to add. set_stock: new stock. set_price: new price in rupees.
+- query: answer questions (low stock, best sellers) in "answer", using the data. Mention sold_count is all-time.
+- summary: a one-line human description of the change for confirmation.`,
+      data.command,
+    );
+  });
+
+/** Product description generator for shop owners. */
+export const describeProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ name: z.string().min(1).max(120), info: z.string().max(400).optional() }).parse(d))
+  .handler(async ({ data }) =>
+    askJson(
+      `Write listing copy for an Indian neighbourhood shop. JSON: {"title": string, "description": string (2-3 sentences, honest, no medical claims), "keywords": string[], "category": string}`,
+      `Product: ${data.name}\nDetails: ${data.info ?? ""}`,
+    ),
+  );
