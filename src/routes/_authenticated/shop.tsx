@@ -50,7 +50,7 @@ function ShopDashboard() {
 function RegisterShop({ onDone }: { onDone: () => void }) {
   const { user } = useAuth();
   const { data: cats = [] } = useQuery(categoriesQuery);
-  const [f, setF] = useState({ name: "", description: "", category_id: "", address: "", area: AREAS[0].name, phone: "", gstin: "" });
+  const [f, setF] = useState({ name: "", description: "", category_id: "", address: "", area: AREAS[0].name as string, phone: "", gstin: "" });
   return (
     <div className="mx-auto max-w-xl px-4 py-8">
       <h1 className="text-3xl font-extrabold">Register your shop</h1>

@@ -40,7 +40,7 @@ function Assistant() {
     catch (e) { toast.error((e as Error).message); }
     setBusy(false);
   }
-  const rows = (ans?.items ?? []).map((i) => ({ ...i, p: products.find((p) => p.id === i.id) })).filter((r) => r.p);
+  const rows = (ans?.items ?? []).map((i: { id: string; quantity: number; why: string }) => ({ ...i, p: products.find((p) => p.id === i.id) })).filter((r) => r.p);
   const total = rows.reduce((a, r) => a + Number(r.p!.price) * r.quantity, 0);
 
   return (

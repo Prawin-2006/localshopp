@@ -8,3 +8,7 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Orders are placed and status-changed only through the `place_order` / `update_order_status` database functions, so stock decrements and totals stay atomic and server-trusted.
+- Roles live in `user_roles`; admin is granted only via `claim_first_admin` (first account) or by an existing admin — never from signup metadata.
+- AI features call the Lovable AI Gateway from server functions in `src/lib/ai.functions.ts`; product suggestions are filtered against real catalog ids before returning.

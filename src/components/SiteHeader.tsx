@@ -44,7 +44,7 @@ function LocationPicker() {
           variant="ghost"
           className="w-full justify-start"
           onClick={() => {
-            if (!navigator.geolocation) return toast.error("Location not supported on this device");
+            if (!navigator.geolocation) { toast.error("Location not supported on this device"); return; }
             navigator.geolocation.getCurrentPosition(
               (pos) => {
                 setLocation({ name: "Current location", lat: pos.coords.latitude, lng: pos.coords.longitude });
