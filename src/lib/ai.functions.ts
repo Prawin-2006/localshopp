@@ -68,7 +68,7 @@ JSON shape: {"reply": string, "items": [{"id": string, "quantity": number, "why"
     const valid = new Map(catalog.map((c) => [c.id, c]));
     const items = (Array.isArray(out.items) ? out.items : [])
       .filter((i: { id?: string }) => i?.id && valid.has(i.id))
-      .map((i: { id: string; quantity?: number; why?: string }) => ({ id: i.id, quantity: Math.max(1, Math.round(i.quantity ?? 1)), why: String(i.why ?? "") }));
+      .map((i: { id: string; quantity?: number; why?: string }) => ({ id: i.id, quantity: Math.max(1, Math.round(i.quantity ?? 1)), why: String(i.why ?? "") })) as { id: string; quantity: number; why: string }[];
     return { reply: String(out.reply ?? ""), items, missing: Array.isArray(out.missing) ? out.missing.map(String) : [] };
   });
 
