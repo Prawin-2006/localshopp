@@ -60,7 +60,7 @@ function Shops() {
             </div>
             <p className="mt-3 text-sm text-muted-foreground">{s.description}</p>
             {s.lat != null && s.lng != null && (
-              <a href={directionsUrl(location, { lat: s.lat, lng: s.lng })} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="mt-3 inline-block text-sm font-semibold text-primary underline">Get directions</a>
+              <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open(directionsUrl(location, { lat: s.lat!, lng: s.lng! }), "_blank", "noopener"); }} className="mt-3 inline-block text-sm font-semibold text-primary underline">Get directions</button>
             )}
             {i < 3 && s.reasons.length > 0 && (
               <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-accent p-2 text-xs text-accent-foreground">
