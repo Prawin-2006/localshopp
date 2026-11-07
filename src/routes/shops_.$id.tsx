@@ -6,6 +6,7 @@ import { productsQuery } from "@/lib/queries";
 import { ProductCard } from "@/components/ProductCard";
 import { useStore } from "@/lib/store";
 import { distanceKm, inr } from "@/lib/market";
+import { ShopsMap, directionsUrl } from "@/components/ShopsMap";
 
 export const Route = createFileRoute("/shops_/$id")({
   head: () => ({
@@ -30,7 +31,7 @@ function ShopPage() {
   if (!shop) return <div className="p-10 text-center text-muted-foreground">Loading shop…</div>;
   const list = products.filter((p) => p.shop_id === id);
   const d = distanceKm(location, shop);
-  const mapsUrl = shop.lat ? `https://www.google.com/maps/search/?api=1&query=${shop.lat},${shop.lng}` : null;
+  const mapsUrl = shop.lat != null && shop.lng != null ? directionsUrl(location, { lat: shop.lat, lng: shop.lng }) : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
@@ -43,9 +44,10 @@ function ShopPage() {
           <span className="flex items-center gap-1"><Star className="h-4 w-4 fill-primary text-primary" />{Number(shop.rating).toFixed(1)}</span>
           <span className="flex items-center gap-1"><Bike className="h-4 w-4" />{shop.delivery_fee > 0 ? `${inr(shop.delivery_fee)} delivery, free above ${inr(shop.free_delivery_above)}` : "Free delivery"}</span>
           {shop.phone && <span className="flex items-center gap-1"><Phone className="h-4 w-4" />{shop.phone}</span>}
-          {mapsUrl && <a href={mapsUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary underline">Open in Maps</a>}
+          {mapsUrl && <a href={mapsUrl} target="_blank" rel="noreferrer" className="font-semibold text-primary underline">Get directions</a>}
         </div>
       </div>
+      {shop.lat != null && <ShopsMap shops={[shop]} center={location} className="mt-6 h-64" />}
       <h2 className="mt-8 text-2xl font-bold">Products ({list.length})</h2>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>
       {list.length === 0 && <p className="text-muted-foreground">No products listed yet. <Link to="/products" className="text-primary">Browse others</Link></p>}

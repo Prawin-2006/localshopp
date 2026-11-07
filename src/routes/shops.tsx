@@ -5,6 +5,7 @@ import { shopsQuery, productsQuery } from "@/lib/queries";
 import { useStore } from "@/lib/store";
 import { distanceKm } from "@/lib/market";
 import { CategoryIcon } from "@/components/CategoryIcon";
+import { ShopsMap, directionsUrl } from "@/components/ShopsMap";
 
 export const Route = createFileRoute("/shops")({
   head: () => ({
@@ -43,6 +44,7 @@ function Shops() {
     <div className="mx-auto max-w-7xl px-4 py-6">
       <h1 className="text-3xl font-extrabold">Shops near {location.name}</h1>
       <p className="text-muted-foreground">Ranked by distance, rating, stock and delivery cost — with the reasons shown.</p>
+      <ShopsMap shops={ranked} center={location} className="mt-6 h-72 sm:h-96" />
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ranked.map((s, i) => (
           <Link key={s.id} to="/shops/$id" params={{ id: s.id }} className="rounded-2xl border bg-card p-5 shadow-soft transition hover:shadow-lift">
@@ -57,6 +59,9 @@ function Shops() {
               </div>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">{s.description}</p>
+            {s.lat != null && s.lng != null && (
+              <a href={directionsUrl(location, { lat: s.lat, lng: s.lng })} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="mt-3 inline-block text-sm font-semibold text-primary underline">Get directions</a>
+            )}
             {i < 3 && s.reasons.length > 0 && (
               <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-accent p-2 text-xs text-accent-foreground">
                 <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Suggested because: {s.reasons.join(", ")}.
