@@ -19,7 +19,12 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { describeProduct, inventoryAssistant } from "@/lib/ai.functions";
 
 export const Route = createFileRoute("/_authenticated/shop")({
-  head: () => ({ meta: [{ title: "Shop dashboard — LocalLoop" }, { name: "description", content: "Manage your shop, products and orders." }] }),
+  head: () => ({ meta: [{ title: "Shop dashboard — LocalLoop" }, { name: "description", content: "Manage your shop, products and orders." },
+      { property: "og:title", content: "Shop dashboard \u2014 LocalLoop" },
+      { property: "og:description", content: "Manage your shop, products and orders." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: ShopDashboard,
 });
 

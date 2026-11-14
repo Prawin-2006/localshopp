@@ -12,3 +12,4 @@
 - Orders are placed and status-changed only through the `place_order` / `update_order_status` database functions, so stock decrements and totals stay atomic and server-trusted.
 - Roles live in `user_roles`; admin is granted only via `claim_first_admin` (first account) or by an existing admin — never from signup metadata.
 - AI features call the Lovable AI Gateway from server functions in `src/lib/ai.functions.ts`; product suggestions are filtered against real catalog ids before returning.
+- Resolve catalog photography in the shared product thumbnail with seller images taking precedence, so all product surfaces use consistent pictures without changing catalog data.

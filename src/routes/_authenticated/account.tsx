@@ -17,7 +17,12 @@ import { StatusBadge } from "@/components/StatusBadge";
 
 export const Route = createFileRoute("/_authenticated/account")({
   validateSearch: z.object({ tab: z.enum(["profile", "addresses", "wishlist", "help"]).optional() }),
-  head: () => ({ meta: [{ title: "My account — LocalLoop" }, { name: "description", content: "Profile, addresses, wishlist and help." }] }),
+  head: () => ({ meta: [{ title: "My account — LocalLoop" }, { name: "description", content: "Profile, addresses, wishlist and help." },
+      { property: "og:title", content: "My account \u2014 LocalLoop" },
+      { property: "og:description", content: "Profile, addresses, wishlist and help." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: Account,
 });
 

@@ -9,7 +9,12 @@ import { ORDER_STAGES, inr, stageIndex } from "@/lib/market";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const Route = createFileRoute("/_authenticated/orders_/$id")({
-  head: () => ({ meta: [{ title: "Track order — LocalLoop" }, { name: "description", content: "Live order tracking." }] }),
+  head: () => ({ meta: [{ title: "Track order — LocalLoop" }, { name: "description", content: "Live order tracking." },
+      { property: "og:title", content: "Track order \u2014 LocalLoop" },
+      { property: "og:description", content: "Live order tracking." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: Track,
 });
 

@@ -16,6 +16,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Discover nearby shops, compare prices, check stock and get same-day delivery or pickup with LocalLoop." },
       { property: "og:title", content: "LocalLoop — Shop from stores in your neighbourhood" },
       { property: "og:description", content: "Nearby shops, real stock, same-day delivery or pickup." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,

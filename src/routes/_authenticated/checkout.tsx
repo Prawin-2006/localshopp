@@ -13,7 +13,12 @@ import { shopsQuery } from "@/lib/queries";
 import { inr, shopTotals } from "@/lib/market";
 
 export const Route = createFileRoute("/_authenticated/checkout")({
-  head: () => ({ meta: [{ title: "Checkout — LocalLoop" }, { name: "description", content: "Confirm address, delivery and payment." }] }),
+  head: () => ({ meta: [{ title: "Checkout — LocalLoop" }, { name: "description", content: "Confirm address, delivery and payment." },
+      { property: "og:title", content: "Checkout \u2014 LocalLoop" },
+      { property: "og:description", content: "Confirm address, delivery and payment." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: Checkout,
 });
 

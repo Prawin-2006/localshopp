@@ -27,6 +27,8 @@ export const Route = createFileRoute("/products")({
       { name: "description", content: "Search and filter products from shops near you by price, rating, distance and availability." },
       { property: "og:title", content: "Browse nearby products — LocalLoop" },
       { property: "og:description", content: "Filter local products by price, rating, distance and stock." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Products,
