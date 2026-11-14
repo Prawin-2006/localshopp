@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Bot, IndianRupee, Package, ShoppingBag, Sparkles, TrendingUp } from "lucide-react";
+import { AlertTriangle, Bot, IndianRupee, Package, ShoppingBag, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,8 @@ import { useAuth } from "@/lib/auth";
 import { categoriesQuery } from "@/lib/queries";
 import { AREAS, forecast, inr } from "@/lib/market";
 import { StatusBadge } from "@/components/StatusBadge";
-import { describeProduct, inventoryAssistant } from "@/lib/ai.functions";
+import { inventoryAssistant } from "@/lib/ai.functions";
+import { ProductDescriptionGenerator } from "@/components/ProductDescriptionGenerator";
 
 export const Route = createFileRoute("/_authenticated/shop")({
   head: () => ({ meta: [{ title: "Shop dashboard — LocalLoop" }, { name: "description", content: "Manage your shop, products and orders." },
@@ -157,10 +158,8 @@ const EMPTY = { name: "", price: 0, mrp: 0, stock: 0, unit: "1 pc", description:
 
 function ProductsTab({ shopId, products, onChange }: { shopId: string; products: P[]; onChange: () => void }) {
   const { data: cats = [] } = useQuery(categoriesQuery);
-  const describe = useServerFn(describeProduct);
   const [edit, setEdit] = useState<(typeof EMPTY & { id?: string }) | null>(null);
   const [q, setQ] = useState("");
-  const [aiBusy, setAiBusy] = useState(false);
 
   async function save() {
     if (!edit?.name || edit.price <= 0) return toast.error("Name and price are required");
@@ -198,7 +197,7 @@ function ProductsTab({ shopId, products, onChange }: { shopId: string; products:
           <DialogHeader><DialogTitle>{edit?.id ? "Edit product" : "Add product"}</DialogTitle></DialogHeader>
           {edit && (
             <div className="space-y-2">
-              <div><Label>Name</Label><Input value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></div>
+              <div><Label htmlFor="product-name">Name</Label><Input id="product-name" maxLength={120} value={edit.name} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></div>
               <div className="grid grid-cols-3 gap-2">
                 <div><Label>Price ₹</Label><Input type="number" value={edit.price} onChange={(e) => setEdit({ ...edit, price: +e.target.value })} /></div>
                 <div><Label>MRP ₹</Label><Input type="number" value={edit.mrp} onChange={(e) => setEdit({ ...edit, mrp: +e.target.value })} /></div>
@@ -208,18 +207,13 @@ function ProductsTab({ shopId, products, onChange }: { shopId: string; products:
                 <div><Label>Unit</Label><Input value={edit.unit} onChange={(e) => setEdit({ ...edit, unit: e.target.value })} /></div>
                 <div><Label>Brand</Label><Input value={edit.brand} onChange={(e) => setEdit({ ...edit, brand: e.target.value })} /></div>
               </div>
-              <div><Label>Category</Label><Select value={edit.category_id} onValueChange={(v) => setEdit({ ...edit, category_id: v })}><SelectTrigger><SelectValue placeholder="Choose" /></SelectTrigger><SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
+              <div><Label htmlFor="product-category">Category</Label><Select value={edit.category_id} onValueChange={(v) => setEdit({ ...edit, category_id: v })}><SelectTrigger id="product-category"><SelectValue placeholder="Choose" /></SelectTrigger><SelectContent>{cats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Image URL (optional)</Label><Input value={edit.image_url} onChange={(e) => setEdit({ ...edit, image_url: e.target.value })} /></div>
               <div>
-                <div className="flex items-center justify-between"><Label>Description</Label>
-                  <Button size="sm" variant="ghost" disabled={aiBusy || !edit.name} onClick={async () => {
-                    setAiBusy(true);
-                    try { const r = await describe({ data: { name: edit.name, info: `${edit.brand} ${edit.unit}` } }); setEdit({ ...edit, description: String(r.description ?? "") }); toast("AI draft added — review before saving"); }
-                    catch (e) { toast.error((e as Error).message); }
-                    setAiBusy(false);
-                  }}><Sparkles className="h-4 w-4" />{aiBusy ? "Writing…" : "Write with AI"}</Button></div>
-                <Textarea rows={4} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
+                <Label htmlFor="product-description">Description</Label>
+                <Textarea id="product-description" rows={4} value={edit.description} onChange={(e) => setEdit({ ...edit, description: e.target.value })} />
               </div>
+              <ProductDescriptionGenerator name={edit.name} category={cats.find((c) => c.id === edit.category_id)?.name ?? ""} brand={edit.brand} unit={edit.unit} onApply={(description) => { setEdit((current) => current ? { ...current, description } : null); toast.success("Description applied"); }} />
               <Button className="w-full" onClick={save}>Save product</Button>
             </div>
           )}

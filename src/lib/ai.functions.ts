@@ -4,6 +4,7 @@ import { generateChatCompletion, GatewayError } from "@lovable.dev/ai-gateway";
 import { createClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/integrations/supabase/types";
+import { descriptionInput, descriptionOutput, descriptionMessages } from "@/lib/product-description";
 
 const MODEL = "google/gemini-3.8-flash" as const;
 
@@ -94,11 +95,25 @@ JSON shape: {"action": "add_stock"|"set_stock"|"set_price"|"query"|"unknown", "p
 /** Product description generator for shop owners. */
 export const describeProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ name: z.string().min(1).max(120), info: z.string().max(400).optional() }).parse(d))
-  .handler(async ({ data }) => {
-    const r = await askJson(
-      `Write listing copy for an Indian neighbourhood shop. JSON: {"title": string, "description": string (2-3 sentences, honest, no medical claims), "keywords": string[], "category": string}`,
-      `Product: ${data.name}\nDetails: ${data.info ?? ""}`,
-    );
-    return { title: String(r.title ?? ""), description: String(r.description ?? ""), keywords: (Array.isArray(r.keywords) ? r.keywords : []).map(String) as string[] };
+  .inputValidator((d) => descriptionInput.parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: owner, error } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "shop_owner" });
+    if (error || !owner) throw new Error("A shop-owner account is required to generate product descriptions.");
+    try {
+      const response = await generateChatCompletion({ model: MODEL, messages: descriptionMessages(data), response_format: { type: "json_object" } });
+      const message = response.choices?.[0]?.message;
+      if (message?.refusal) throw new Error("The assistant cannot write a description for these details.");
+      const text = message?.content;
+      if (typeof text !== "string") throw new Error("No description returned");
+      return descriptionOutput.parse(JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g, "")));
+    } catch (e) {
+      if (e instanceof GatewayError) {
+        console.error("Product description generation failed", { code: e.code, ids: e.ids });
+        if (e.httpStatus === 429) throw new Error("The assistant is busy — try again in a minute.");
+        if (e.httpStatus === 402) throw new Error("AI credits are exhausted for this workspace.");
+        if (e.httpStatus === 403) throw new Error("AI generation is unavailable under this workspace’s settings.");
+      }
+      if (e instanceof Error && e.message === "The assistant cannot write a description for these details.") throw e;
+      throw new Error("The assistant couldn't write a description right now. Your details have been kept.");
+    }
   });
