@@ -13,6 +13,8 @@ export const Route = createFileRoute("/cart")({
       { name: "description", content: "Review items grouped by shop before checkout." },
       { property: "og:title", content: "Your cart — LocalLoop" },
       { property: "og:description", content: "Review your LocalLoop cart." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Cart,

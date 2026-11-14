@@ -6,7 +6,12 @@ import { inr } from "@/lib/market";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const Route = createFileRoute("/_authenticated/orders")({
-  head: () => ({ meta: [{ title: "My orders — LocalLoop" }, { name: "description", content: "Your LocalLoop order history." }] }),
+  head: () => ({ meta: [{ title: "My orders — LocalLoop" }, { name: "description", content: "Your LocalLoop order history." },
+      { property: "og:title", content: "My orders \u2014 LocalLoop" },
+      { property: "og:description", content: "Your LocalLoop order history." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: Orders,
 });
 

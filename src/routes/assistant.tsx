@@ -18,6 +18,8 @@ export const Route = createFileRoute("/assistant")({
       { name: "description", content: "Tell the assistant what you need and your budget; it picks real in-stock items from nearby shops." },
       { property: "og:title", content: "AI shopping assistant — LocalLoop" },
       { property: "og:description", content: "Ask in English or Tamil, get a real basket from nearby shops." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Assistant,

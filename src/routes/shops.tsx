@@ -14,6 +14,8 @@ export const Route = createFileRoute("/shops")({
       { name: "description", content: "Verified local stores near you, ranked by distance, rating and delivery." },
       { property: "og:title", content: "Nearby shops — LocalLoop" },
       { property: "og:description", content: "Verified local stores ranked for you, with reasons." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Shops,

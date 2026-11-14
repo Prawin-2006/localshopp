@@ -11,7 +11,12 @@ import { inr } from "@/lib/market";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "Admin — LocalLoop" }, { name: "description", content: "Platform administration." }] }),
+  head: () => ({ meta: [{ title: "Admin — LocalLoop" }, { name: "description", content: "Platform administration." },
+      { property: "og:title", content: "Admin \u2014 LocalLoop" },
+      { property: "og:description", content: "Platform administration." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ] }),
   component: Admin,
 });
 

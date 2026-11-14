@@ -15,6 +15,8 @@ export const Route = createFileRoute("/auth")({
       { name: "description", content: "Sign in or create a LocalLoop account as a customer or shop owner." },
       { property: "og:title", content: "Sign in — LocalLoop" },
       { property: "og:description", content: "Join LocalLoop." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,

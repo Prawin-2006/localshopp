@@ -15,6 +15,8 @@ export const Route = createFileRoute("/shops_/$id")({
       { name: "description", content: "Products, location and delivery details for this local shop." },
       { property: "og:title", content: "Shop — LocalLoop" },
       { property: "og:description", content: "Browse this neighbourhood store on LocalLoop." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ShopPage,
