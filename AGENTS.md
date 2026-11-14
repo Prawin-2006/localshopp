@@ -13,3 +13,4 @@
 - Roles live in `user_roles`; admin is granted only via `claim_first_admin` (first account) or by an existing admin — never from signup metadata.
 - AI features call the Lovable AI Gateway from server functions in `src/lib/ai.functions.ts`; product suggestions are filtered against real catalog ids before returning.
 - Resolve catalog photography in the shared product thumbnail with seller images taking precedence, so all product surfaces use consistent pictures without changing catalog data.
+- Product-description generation validates name, category, details and output in a shared schema module; the server verifies shop-owner access and the editor applies drafts only on explicit confirmation to preserve unsaved product changes.
